@@ -1,4 +1,3 @@
 streamlit
-opencv-python-headless  # OpenCV 패키지 (GUI 없는 버전)
+moviepy
 requests
-numpy
