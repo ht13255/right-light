@@ -78,7 +78,7 @@ if drive_url:
                     # Streamlit에서 프레임 표시
                     stframe.image(frame, channels="RGB")
             else:
-                st.error(f"Failed to open video file: {video_path}")
+                st.error(f"Failed to open video file: {video_path}. The file may be corrupted or not a supported video format.")
             cap.release()
         else:
             st.error("Failed to download the video file.")
