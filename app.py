@@ -34,6 +34,7 @@ def download_drive_file(file_id):
             for chunk in response.iter_content(chunk_size=8192):
                 f.write(chunk)
         
+        st.write(f"Video saved to temporary file: {temp_file.name}")
         return temp_file.name
     else:
         st.error(f"Failed to download file: {response.status_code}")
@@ -50,7 +51,7 @@ if drive_url:
         
         if video_path:
             # OpenCV를 사용하여 비디오 읽기
-            st.write("Processing video...")
+            st.write(f"Opening video: {video_path}")
             cap = cv2.VideoCapture(video_path)
             
             if cap.isOpened():
@@ -67,7 +68,7 @@ if drive_url:
                     # Streamlit에서 프레임 표시
                     stframe.image(frame, channels="RGB")
             else:
-                st.error("Failed to open video file.")
+                st.error(f"Failed to open video file: {video_path}")
             cap.release()
         else:
             st.error("Failed to download the video file.")
