@@ -12,13 +12,23 @@ drive_url = st.text_input("Enter Google Drive Video Link")
 
 def get_drive_file_id(drive_url):
     """Google Drive 링크에서 파일 ID 추출"""
-    if 'drive.google.com' in drive_url:
-        return drive_url.split('/d/')[1].split('/')[0]
-    return None
+    try:
+        if 'drive.google.com' in drive_url and '/d/' in drive_url:
+            return drive_url.split('/d/')[1].split('/')[0]
+        else:
+            st.error("Invalid Google Drive link. Make sure the link is in the correct format.")
+            return None
+    except IndexError:
+        st.error("Error extracting file ID from the Google Drive link.")
+        return None
+
+def generate_download_link(file_id):
+    """Google Drive 파일 ID로 다운로드 링크 생성"""
+    return f"https://drive.google.com/uc?id={file_id}&export=download"
 
 def download_drive_file(file_id):
     """Google Drive에서 파일을 다운로드하는 함수"""
-    download_url = f"https://drive.google.com/uc?id={file_id}"
+    download_url = generate_download_link(file_id)
     response = requests.get(download_url, stream=True)
     
     if response.status_code == 200:
@@ -31,7 +41,7 @@ def download_drive_file(file_id):
             for chunk in response.iter_content(chunk_size=8192):
                 f.write(chunk)
 
-        st.write(f"Video saved to temporary file: {temp_file.name}")  # 경로 확인
+        st.write(f"Video saved to temporary file: {temp_file.name}")
         return temp_file.name
     else:
         st.error(f"Failed to download file: {response.status_code}")
