@@ -2,12 +2,13 @@ import streamlit as st
 import requests
 from moviepy.editor import VideoFileClip
 from tempfile import NamedTemporaryFile
+import os
 
 # Streamlit 앱 제목 설정
 st.title("Player Video Analysis from Google Drive (Using MoviePy)")
 
 # Google Drive 공유 링크 입력
-drive_url = st.text_input("구글 드라이브 링크 삽입")
+drive_url = st.text_input("Enter Google Drive Video Link")
 
 def get_drive_file_id(drive_url):
     """Google Drive 링크에서 파일 ID 추출"""
@@ -59,6 +60,11 @@ def process_video_with_moviepy(video_path):
     """MoviePy로 비디오 처리"""
     try:
         st.write(f"Processing video: {video_path}")
+
+        # 다운로드된 파일의 크기 확인
+        if not os.path.exists(video_path) or os.path.getsize(video_path) == 0:
+            st.error(f"Downloaded file is either missing or empty: {video_path}")
+            return
         
         # MoviePy로 비디오 파일 열기
         clip = VideoFileClip(video_path)
