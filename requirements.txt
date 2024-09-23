@@ -1,4 +1,4 @@
 streamlit
-pandas
-matplotlib
-fpdf
+opencv-python-headless  # OpenCV 패키지 (GUI 없는 버전)
+requests
+numpy
