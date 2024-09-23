@@ -11,17 +11,13 @@ st.title("Player Video Analysis from Google Drive")
 drive_url = st.text_input("Enter Google Drive Video Link")
 
 def get_drive_file_id(drive_url):
-    """
-    Google Drive 링크에서 파일 ID 추출
-    """
+    """Google Drive 링크에서 파일 ID 추출"""
     if 'drive.google.com' in drive_url:
         return drive_url.split('/d/')[1].split('/')[0]
     return None
 
 def download_drive_file(file_id):
-    """
-    Google Drive에서 파일을 다운로드하는 함수
-    """
+    """Google Drive에서 파일을 다운로드하는 함수"""
     download_url = f"https://drive.google.com/uc?id={file_id}"
     response = requests.get(download_url, stream=True)
     
@@ -29,12 +25,13 @@ def download_drive_file(file_id):
         file_size = int(response.headers.get('Content-Length', 0))
         st.write(f"File size: {file_size / (1024 * 1024):.2f} MB")
         
+        # 임시 파일 생성
         temp_file = NamedTemporaryFile(delete=False, suffix=".mp4")
         with temp_file as f:
             for chunk in response.iter_content(chunk_size=8192):
                 f.write(chunk)
-        
-        st.write(f"Video saved to temporary file: {temp_file.name}")
+
+        st.write(f"Video saved to temporary file: {temp_file.name}")  # 경로 확인
         return temp_file.name
     else:
         st.error(f"Failed to download file: {response.status_code}")
@@ -51,7 +48,7 @@ if drive_url:
         
         if video_path:
             # OpenCV를 사용하여 비디오 읽기
-            st.write(f"Opening video: {video_path}")
+            st.write(f"Opening video: {video_path}")  # 경로 확인
             cap = cv2.VideoCapture(video_path)
             
             if cap.isOpened():
