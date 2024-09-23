@@ -13,10 +13,18 @@ drive_url = st.text_input("Enter Google Drive Video Link")
 def get_drive_file_id(drive_url):
     """Google Drive 링크에서 파일 ID 추출"""
     try:
-        if 'drive.google.com' in drive_url and '/d/' in drive_url:
-            return drive_url.split('/d/')[1].split('/')[0]
+        if 'drive.google.com' in drive_url:
+            if '/file/d/' in drive_url:
+                # 링크가 /file/d/ 형식일 때
+                return drive_url.split('/file/d/')[1].split('/')[0]
+            elif 'uc?id=' in drive_url:
+                # 다운로드 형식인 uc?id= 형식일 때
+                return drive_url.split('uc?id=')[1].split('&')[0]
+            else:
+                st.error("Invalid Google Drive link format. Please use a correct link.")
+                return None
         else:
-            st.error("Invalid Google Drive link. Make sure the link is in the correct format.")
+            st.error("Invalid link. Please provide a valid Google Drive link.")
             return None
     except IndexError:
         st.error("Error extracting file ID from the Google Drive link.")
