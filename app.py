@@ -5,7 +5,7 @@ from tempfile import NamedTemporaryFile
 import os
 
 # Streamlit 앱 제목 설정
-st.title("Player Video Analysis from Google Drive (Using MoviePy)")
+st.title("구글 드라이브 영상 링크 업로드")
 
 # Google Drive 공유 링크 입력
 drive_url = st.text_input("Enter Google Drive Video Link")
