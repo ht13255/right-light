@@ -1,30 +1,27 @@
 import streamlit as st
 import requests
-import cv2
-import os
+from moviepy.editor import VideoFileClip
 from tempfile import NamedTemporaryFile
 
 # Streamlit 앱 제목 설정
-st.title("Player Video Analysis from Google Drive")
+st.title("Player Video Analysis from Google Drive (Using MoviePy)")
 
 # Google Drive 공유 링크 입력
-drive_url = st.text_input("Enter Google Drive Video Link")
+drive_url = st.text_input("구글 드라이브 링크 삽입")
 
 def get_drive_file_id(drive_url):
     """Google Drive 링크에서 파일 ID 추출"""
     try:
         if 'drive.google.com' in drive_url:
             if '/file/d/' in drive_url:
-                # 링크가 /file/d/ 형식일 때
                 return drive_url.split('/file/d/')[1].split('/')[0]
             elif 'uc?id=' in drive_url:
-                # 다운로드 형식인 uc?id= 형식일 때
                 return drive_url.split('uc?id=')[1].split('&')[0]
             else:
-                st.error("Invalid Google Drive link format. Please use a correct link.")
+                st.error("Invalid Google Drive link format.")
                 return None
         else:
-            st.error("Invalid link. Please provide a valid Google Drive link.")
+            st.error("Please provide a valid Google Drive link.")
             return None
     except IndexError:
         st.error("Error extracting file ID from the Google Drive link.")
@@ -58,39 +55,33 @@ def download_drive_file(file_id):
         st.error(f"Failed to download file: {response.status_code}")
         return None
 
-def open_video_with_opencv(video_path):
-    """OpenCV로 비디오 파일 열기 및 처리"""
+def process_video_with_moviepy(video_path):
+    """MoviePy로 비디오 처리"""
     try:
-        st.write(f"Attempting to open video: {video_path}")
+        st.write(f"Processing video: {video_path}")
         
-        # 파일 존재 여부 확인
-        if not os.path.exists(video_path):
-            st.error(f"File does not exist: {video_path}")
-            return
+        # MoviePy로 비디오 파일 열기
+        clip = VideoFileClip(video_path)
         
-        # OpenCV로 비디오 열기 시도
-        cap = cv2.VideoCapture(video_path)
+        # 비디오 정보 출력
+        st.write(f"Duration: {clip.duration} seconds")
+        st.write(f"Resolution: {clip.size[0]}x{clip.size[1]}")
         
-        if not cap.isOpened():
-            st.error(f"Failed to open video file: {video_path}. The file may be corrupted or not a supported video format.")
-            return
+        # 비디오 자르기 (10초에서 20초 구간)
+        subclip = clip.subclip(10, 20)
         
-        # 비디오 프레임 읽고 화면에 출력
-        stframe = st.empty()
-        while cap.isOpened():
-            ret, frame = cap.read()
-            if not ret:
-                break
-            # BGR에서 RGB로 변환
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            # Streamlit에서 프레임 출력
-            stframe.image(frame, channels="RGB")
+        # 비디오 미리보기 (10초~20초 구간의 첫 번째 프레임)
+        st.image(subclip.get_frame(0), caption="First frame of the 10-20s subclip")
         
-        cap.release()
+        # 자른 비디오 저장
+        output_path = "output.mp4"
+        subclip.write_videofile(output_path, codec="libx264")
+        st.success(f"Processed video saved as {output_path}")
+        
     except Exception as e:
         st.error(f"An error occurred while processing the video: {str(e)}")
 
-# 비디오 다운로드 및 처리
+# Google Drive에서 비디오 다운로드 및 처리
 if drive_url:
     file_id = get_drive_file_id(drive_url)
     
@@ -101,8 +92,8 @@ if drive_url:
         video_path = download_drive_file(file_id)
         
         if video_path:
-            # OpenCV로 비디오 파일 열기 시도
-            open_video_with_opencv(video_path)
+            # MoviePy로 비디오 처리
+            process_video_with_moviepy(video_path)
         else:
             st.error("Failed to download the video file.")
     else:
