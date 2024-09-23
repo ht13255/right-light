@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 from tempfile import NamedTemporaryFile
 
-# Streamlit 페이지 설정
+# Streamlit 앱 제목 설정
 st.title("Player Video Analysis from Google Drive")
 
 # Google Drive 공유 링크 입력
@@ -41,7 +41,7 @@ if drive_url:
         
         if file_content:
             # 비디오를 임시 파일에 저장
-            with NamedTemporaryFile(delete=False) as temp_file:
+            with NamedTemporaryFile(delete=False, suffix=".mp4") as temp_file:
                 temp_file.write(file_content)
                 temp_video_path = temp_file.name
             
