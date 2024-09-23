@@ -1,7 +1,7 @@
 import streamlit as st
 import requests
 import cv2
-import numpy as np
+import os
 from tempfile import NamedTemporaryFile
 
 # Streamlit 앱 제목 설정
@@ -58,6 +58,39 @@ def download_drive_file(file_id):
         st.error(f"Failed to download file: {response.status_code}")
         return None
 
+def open_video_with_opencv(video_path):
+    """OpenCV로 비디오 파일 열기 및 처리"""
+    try:
+        st.write(f"Attempting to open video: {video_path}")
+        
+        # 파일 존재 여부 확인
+        if not os.path.exists(video_path):
+            st.error(f"File does not exist: {video_path}")
+            return
+        
+        # OpenCV로 비디오 열기 시도
+        cap = cv2.VideoCapture(video_path)
+        
+        if not cap.isOpened():
+            st.error(f"Failed to open video file: {video_path}. The file may be corrupted or not a supported video format.")
+            return
+        
+        # 비디오 프레임 읽고 화면에 출력
+        stframe = st.empty()
+        while cap.isOpened():
+            ret, frame = cap.read()
+            if not ret:
+                break
+            # BGR에서 RGB로 변환
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            # Streamlit에서 프레임 출력
+            stframe.image(frame, channels="RGB")
+        
+        cap.release()
+    except Exception as e:
+        st.error(f"An error occurred while processing the video: {str(e)}")
+
+# 비디오 다운로드 및 처리
 if drive_url:
     file_id = get_drive_file_id(drive_url)
     
@@ -68,26 +101,8 @@ if drive_url:
         video_path = download_drive_file(file_id)
         
         if video_path:
-            # OpenCV를 사용하여 비디오 읽기
-            st.write(f"Opening video: {video_path}")
-            cap = cv2.VideoCapture(video_path)
-            
-            if cap.isOpened():
-                stframe = st.empty()
-                
-                while cap.isOpened():
-                    ret, frame = cap.read()
-                    if not ret:
-                        break
-                    
-                    # OpenCV 이미지(BGR)를 Streamlit에서 표시할 수 있는 RGB로 변환
-                    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                    
-                    # Streamlit에서 프레임 표시
-                    stframe.image(frame, channels="RGB")
-            else:
-                st.error(f"Failed to open video file: {video_path}. The file may be corrupted or not a supported video format.")
-            cap.release()
+            # OpenCV로 비디오 파일 열기 시도
+            open_video_with_opencv(video_path)
         else:
             st.error("Failed to download the video file.")
     else:
