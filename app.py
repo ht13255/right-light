@@ -33,6 +33,9 @@ def download_drive_file(file_id):
     
     if response.status_code == 200:
         file_size = int(response.headers.get('Content-Length', 0))
+        if file_size == 0:
+            st.error("The downloaded file is empty. Please check the Google Drive link or file permissions.")
+            return None
         st.write(f"File size: {file_size / (1024 * 1024):.2f} MB")
         
         # 임시 파일 생성
@@ -58,7 +61,7 @@ if drive_url:
         
         if video_path:
             # OpenCV를 사용하여 비디오 읽기
-            st.write(f"Opening video: {video_path}")  # 경로 확인
+            st.write(f"Opening video: {video_path}")
             cap = cv2.VideoCapture(video_path)
             
             if cap.isOpened():
