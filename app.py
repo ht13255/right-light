@@ -1,3 +1,5 @@
+ffmpeg -i input.mp4 -c copy -movflags faststart output.mp4
+
 import streamlit as st
 import requests
 import subprocess
