@@ -1,12 +1,11 @@
 import streamlit as st
 import requests
 import subprocess
-from moviepy.editor import VideoFileClip
 from tempfile import NamedTemporaryFile
 import os
 
 # Streamlit 앱 제목 설정
-st.title("Player Video Analysis from Google Drive (Using MoviePy)")
+st.title("Player Video Analysis from Google Drive")
 
 # Google Drive 공유 링크 입력
 drive_url = st.text_input("Enter Google Drive Video Link")
@@ -75,44 +74,6 @@ def reencode_video_with_ffmpeg(input_path, output_path):
         st.error(f"FFmpeg error: {str(e)}")
         return None
 
-def process_video_with_moviepy(video_path):
-    """MoviePy로 비디오 처리"""
-    try:
-        st.write(f"Processing video: {video_path}")
-
-        # 다운로드된 파일의 크기 확인
-        if not os.path.exists(video_path) or os.path.getsize(video_path) == 0:
-            st.error(f"Downloaded file is either missing or empty: {video_path}")
-            return
-        
-        # 비디오 파일을 MoviePy가 처리할 수 있는 형식으로 재인코딩
-        reencoded_path = video_path.replace(".mp4", "_reencoded.mp4")
-        reencoded_path = reencode_video_with_ffmpeg(video_path, reencoded_path)
-        if not reencoded_path:
-            st.error("Failed to reencode the video.")
-            return
-
-        # MoviePy로 비디오 파일 열기
-        clip = VideoFileClip(reencoded_path)
-        
-        # 비디오 정보 출력
-        st.write(f"Duration: {clip.duration} seconds")
-        st.write(f"Resolution: {clip.size[0]}x{clip.size[1]}")
-        
-        # 비디오 자르기 (10초에서 20초 구간)
-        subclip = clip.subclip(10, 20)
-        
-        # 비디오 미리보기 (10초~20초 구간의 첫 번째 프레임)
-        st.image(subclip.get_frame(0), caption="First frame of the 10-20s subclip")
-        
-        # 자른 비디오 저장
-        output_path = "output.mp4"
-        subclip.write_videofile(output_path, codec="libx264")
-        st.success(f"Processed video saved as {output_path}")
-        
-    except Exception as e:
-        st.error(f"An error occurred while processing the video: {str(e)}")
-
 # Google Drive에서 비디오 다운로드 및 처리
 if drive_url:
     file_id = get_drive_file_id(drive_url)
@@ -124,8 +85,16 @@ if drive_url:
         video_path = download_drive_file(file_id)
         
         if video_path:
-            # MoviePy로 비디오 처리
-            process_video_with_moviepy(video_path)
+            # 비디오를 임시로 저장할 경로 설정
+            reencoded_path = video_path.replace(".mp4", "_reencoded.mp4")
+            
+            # FFmpeg로 재인코딩
+            reencoded_path = reencode_video_with_ffmpeg(video_path, reencoded_path)
+            
+            if reencoded_path:
+                st.success("Video reencoding successful!")
+            else:
+                st.error("Video reencoding failed.")
         else:
             st.error("Failed to download the video file.")
     else:
