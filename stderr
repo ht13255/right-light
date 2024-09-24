@@ -1,0 +1,1 @@
+st.error(f"FFmpeg error: {process.stderr.decode('utf-8')}")
