@@ -1,11 +1,12 @@
 import streamlit as st
 import requests
+import subprocess
 from moviepy.editor import VideoFileClip
 from tempfile import NamedTemporaryFile
 import os
 
 # Streamlit 앱 제목 설정
-st.title("구글 드라이브 영상 링크 업로드")
+st.title("Player Video Analysis from Google Drive (Using MoviePy)")
 
 # Google Drive 공유 링크 입력
 drive_url = st.text_input("Enter Google Drive Video Link")
@@ -56,6 +57,20 @@ def download_drive_file(file_id):
         st.error(f"Failed to download file: {response.status_code}")
         return None
 
+def reencode_video_with_ffmpeg(input_path, output_path):
+    """FFmpeg를 사용하여 비디오 파일 재인코딩 및 메타데이터 재생성"""
+    try:
+        command = [
+            "ffmpeg", "-i", input_path, "-c:v", "libx264", "-preset", "fast", "-c:a", "aac", "-strict", "experimental", 
+            "-movflags", "faststart", output_path
+        ]
+        subprocess.run(command, check=True)
+        st.write(f"Video reencoded and saved as: {output_path}")
+        return output_path
+    except subprocess.CalledProcessError as e:
+        st.error(f"FFmpeg error: {str(e)}")
+        return None
+
 def process_video_with_moviepy(video_path):
     """MoviePy로 비디오 처리"""
     try:
@@ -66,8 +81,15 @@ def process_video_with_moviepy(video_path):
             st.error(f"Downloaded file is either missing or empty: {video_path}")
             return
         
+        # 비디오 파일을 MoviePy가 처리할 수 있는 형식으로 재인코딩
+        reencoded_path = video_path.replace(".mp4", "_reencoded.mp4")
+        reencoded_path = reencode_video_with_ffmpeg(video_path, reencoded_path)
+        if not reencoded_path:
+            st.error("Failed to reencode the video.")
+            return
+
         # MoviePy로 비디오 파일 열기
-        clip = VideoFileClip(video_path)
+        clip = VideoFileClip(reencoded_path)
         
         # 비디오 정보 출력
         st.write(f"Duration: {clip.duration} seconds")
