@@ -58,13 +58,17 @@ def download_drive_file(file_id):
         return None
 
 def reencode_video_with_ffmpeg(input_path, output_path):
-    """FFmpeg를 사용하여 비디오 파일 재인코딩 및 메타데이터 재생성"""
+    """FFmpeg를 사용하여 비디오 파일 재인코딩 및 오류 로그 캡처"""
     try:
         command = [
             "ffmpeg", "-i", input_path, "-c:v", "libx264", "-preset", "fast", "-c:a", "aac", "-strict", "experimental", 
             "-movflags", "faststart", output_path
         ]
-        subprocess.run(command, check=True)
+        # stderr를 캡처하여 FFmpeg 오류를 로그로 확인
+        process = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if process.returncode != 0:
+            st.error(f"FFmpeg error:\n{process.stderr.decode('utf-8')}")
+            return None
         st.write(f"Video reencoded and saved as: {output_path}")
         return output_path
     except subprocess.CalledProcessError as e:
